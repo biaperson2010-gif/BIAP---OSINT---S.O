@@ -295,58 +295,75 @@
     <script type="py">
 from pyscript import document
 import urllib.parse
+import asyncio
 
 def generate_google_link(query):
     encoded_query = urllib.parse.quote(query)
     return f"https://www.google.com/search?q={encoded_query}"
 
-def create_card(title, query, description):
-    link = generate_google_link(query)
+def generate_duck_link(query):
+    encoded_query = urllib.parse.quote(query)
+    return f"https://duckduckgo.com/?q={encoded_query}"
+
+def create_card(title, query, description, provider="Google"):
+    if provider == "Google":
+        link = generate_google_link(query)
+    else:
+        link = generate_duck_link(query)
+        
     return f"""
     <div class="result-card">
         <h3>{title}</h3>
         <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">{description}</p>
         <code style="display: block; font-size: 0.75rem; color: var(--primary); margin-bottom: 10px; word-break: break-all;">{query}</code>
-        <a href="{link}" target="_blank" class="dork-link">Abrir Busca →</a>
+        <a href="{link}" target="_blank" class="dork-link">Abrir em {provider} →</a>
     </div>
     """
 
-def handle_search(event):
+async def handle_search(event):
     search_type = document.querySelector("#search-type").value
     query_val = document.querySelector("#search-input").value.strip()
     results_div = document.querySelector("#results")
+    btn_text = document.querySelector("#btn-text")
     
     if not query_val:
         return
 
+    # Efeito de Loading / Scanning
     results_div.style.display = "grid"
-    results_div.innerHTML = "" # Clear previous
+    results_div.innerHTML = "<div style='grid-column: 1/-1; text-align: center; padding: 40px;'><div class='loader'></div><p style='font-family: \"JetBrains Mono\"; color: var(--primary);'>VARRENDO FONTES PÚBLICAS... AGUARDE</p></div>"
     
+    await asyncio.sleep(1.5) # Simula processamento
+    
+    results_div.innerHTML = ""
     cards = []
     
+    # 1. BUSCA UNIVERSAL (Aparece para todos)
+    cards.append(create_card("Pegada Digital Global", f'"{query_val}"', "Busca exata em toda a internet por qualquer menção pública."))
+    cards.append(create_card("Busca Profunda (Deep Search)", f'"{query_val}" -inurl:htm -inurl:html -intitle:index', "Filtra ruídos comuns de sites para focar em dados brutos.", "DuckDuckGo"))
+
     if search_type == "nome":
-        # Dorks for Name
-        cards.append(create_card("Diários Oficiais", f'"{query_val}" site:jusbrasil.com.br', "Busca processos e publicações jurídicas."))
-        cards.append(create_card("Redes Profissionais", f'"{query_val}" site:linkedin.com', "Localiza perfis no LinkedIn."))
-        cards.append(create_card("Arquivos PDF", f'filetype:pdf "{query_val}"', "Busca documentos públicos em PDF contendo o nome."))
-        cards.append(create_card("Dados Governamentais", f'"{query_val}" site:transparencia.gov.br', "Busca no portal da transparência."))
-        cards.append(create_card("Menções Sociais", f'"{query_val}" site:facebook.com OR site:instagram.com', "Busca em redes sociais comuns."))
+        # Nome Completo - Informações Públicas
+        cards.append(create_card("Escavador (Diários Oficiais)", f'site:escavador.com "{query_val}"', "Encontra menções em diários oficiais e registros públicos."))
+        cards.append(create_card("Jusbrasil (Processos)", f'site:jusbrasil.com.br "{query_val}"', "Verifica existência de processos jurídicos públicos."))
+        cards.append(create_card("Redes Profissionais e Sociais", f'"{query_val}" (site:linkedin.com OR site:facebook.com OR site:instagram.com)', "Agrega perfis sociais encontrados."))
+        cards.append(create_card("Documentos e Listas", f'filetype:pdf OR filetype:doc OR filetype:xls "{query_val}"', "Busca o nome dentro de arquivos públicos hospedados online."))
+        cards.append(create_card("Menções em Universidades/Governo", f'site:.edu.br OR site:.gov.br "{query_val}"', "Busca registros em domínios acadêmicos ou governamentais."))
         
     elif search_type == "cpf":
-        # Dorks for CPF
-        cards.append(create_card("Processos Públicos", f'"{query_val}" site:jusbrasil.com.br', "Busca o CPF em diários de justiça."))
-        cards.append(create_card("Documentos Expostos", f'filetype:pdf OR filetype:xlsx "{query_val}"', "Busca planilhas ou PDFs com o CPF."))
-        cards.append(create_card("Consultas Gov", f'"{query_val}" site:fazenda.gov.br OR site:receita.economia.gov.br', "Busca em domínios fazendários."))
+        # CPF - Informações Públicas (Legalmente acessíveis)
+        cards.append(create_card("Vazamentos e Listas Públicas", f'"{query_val}" (ext:pdf OR ext:xlsx OR ext:csv)', "Busca o CPF em listas de documentos que podem estar expostos publicamente."))
+        cards.append(create_card("Registros de Transparência", f'site:transparencia.gov.br "{query_val}"', "Verifica se o CPF consta em portais de transparência pública."))
+        cards.append(create_card("Diários de Justiça", f'"{query_val}" site:jus.br', "Busca menções ao CPF em portais de tribunais (PJe)."))
         
     elif search_type == "email":
-        # Dorks for Email
-        cards.append(create_card("Vazamentos/Pastes", f'"{query_val}" site:pastebin.com OR site:ghostbin.com', "Busca o email em repositórios de texto."))
-        cards.append(create_card("Associações Profissionais", f'"{query_val}" site:linkedin.com', "Busca perfis vinculados ao email."))
-        cards.append(create_card("Fóruns e Comunidades", f'"{query_val}" site:github.com OR site:stackoverflow.com', "Busca menções em plataformas dev."))
-        cards.append(create_card("Documentos Públicos", f'filetype:pdf "{query_val}"', "Busca o email dentro de documentos públicos."))
+        # E-mail - Pegada Digital
+        cards.append(create_card("Repositórios de Código", f'site:github.com OR site:gitlab.com "{query_val}"', "Encontra projetos ou códigos onde o e-mail foi mencionado."))
+        cards.append(create_card("Fóruns e Comunidades", f'"{query_val}" (site:reddit.com OR site:stackoverflow.com)', "Busca discussões ou perfis vinculados ao e-mail."))
+        cards.append(create_card("Pastes e Logs", f'site:pastebin.com OR site:ghostbin.co "{query_val}"', "Busca o e-mail em serviços de armazenamento de texto (comum em vazamentos)."))
+        cards.append(create_card("Associações de Domínio", f'"{query_val}" intext:email OR intext:contato', "Busca páginas de contato onde este e-mail é citado."))
 
     results_div.innerHTML = "".join(cards)
-
     </script>
 </body>
 </html>

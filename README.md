@@ -3,11 +3,12 @@
 Uma Single Page Application (SPA) moderna e ética para Inteligência de Fontes Abertas (OSINT), projetada para automatizar a geração de Google Dorks.
 
 ## 🚀 Funcionalidades
-- **Busca por Nome:** Localiza processos no Jusbrasil, perfis no LinkedIn e documentos PDF públicos.
-- **Busca por CPF:** Identifica menções em diários oficiais e planilhas expostas.
-- **Busca por E-mail:** Rastreia o e-mail em redes profissionais, fóruns (GitHub/StackOverflow) e repositórios de texto (Pastebin).
-- **Interface Hacker-Style:** Design responsivo, escuro e minimalista.
-- **100% Front-end:** Roda inteiramente no navegador utilizando **PyScript**, permitindo hospedagem gratuita no GitHub Pages sem necessidade de servidor back-end.
+- **Busca Universal:** Nova função de "Pegada Digital Global" que varre a web por qualquer menção pública ao termo.
+- **Busca Profunda (Deep Search):** Utiliza o DuckDuckGo para encontrar dados brutos, ignorando ruídos comuns de SEO.
+- **Busca por Nome:** Integração com **Escavador**, Jusbrasil, LinkedIn e filtros de domínios governamentais/acadêmicos.
+- **Busca por CPF:** Localiza o termo em listas públicas, PDFs, planilhas e portais de transparência.
+- **Busca por E-mail:** Rastreamento em repositórios de código (GitHub/GitLab), fóruns, logs e serviços de paste.
+- **Interface Imersiva:** Animação de varredura (Scanning) e design Hacker-Style responsivo.
 
 ## ⚖️ Aviso Ético e Legal
 Esta ferramenta foi criada estritamente para fins educacionais e de pesquisa ética. 
